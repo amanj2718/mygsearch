@@ -3,15 +3,34 @@
 Record::Record(std::string str = "foo", int did = 0, int mu = 0):term(str), docid(did), freq(mu) { };
 
 void CleanString(std::string& base_str, const std::string& filter){
+	std::size_t base_len = base_str.length();
+	std::size_t filter_len = filter.length() - 1;
+	std::size_t found = base_str.find(filter);
+	std::cout << "Before -- " << base_str << std::endl;
+	while(found != std::string::npos){
+		base_str.erase(found, filter_len);
+		if(found + filter_len < base_len){
+			found = base_str.find(filter, found+filter_len);
+		}
+		else{
+			break;
+		}
+	}
+	std::cout << "After -- " << base_str << std::endl;
 }
 
 int CountOccurrences(const std::string& base_str, const std::string& filter){
 	int count = 0;
+	std::size_t base_len = base_str.length();
 	std::size_t found = base_str.find(filter);
 	while(found != std::string::npos){
 		count += 1;
-		// std::cout << found << std::endl;
-		found = base_str.find(filter, found + 1);
+		if(found + 1 < base_len){
+			found = base_str.find(filter, found + 1);
+		}
+		else{
+			break;
+		}
 	}
 	return count;
 }
@@ -23,10 +42,9 @@ void CreateRecords(std::string& data, int docid){
 }
 
 std::string FilterStopwords(std::string& fstr){
-	std::vector<std::string> stopwords = {" a ", " I ", " has ", " was ", " had ", " which ", " so ", " it "};
-	for(int i = 0; i < 8; i++){
+	std::vector<std::string> stopwords = {" a ", " I ", " has ", " was ", " had ", " which ", " so ", " it ", " who ", "who ", " that "};
+	for(int i = 0; i < stopwords.size(); i++){
 		CleanString(fstr, stopwords[i]);
-		std::cout << fstr << std::endl;
 	}
 	return fstr;
 }
@@ -48,8 +66,8 @@ void CreateIndexes(){
 		fptr.close();
 	}
 	std::string file_str (buffer, len);
-	// std::cout << file_str << std::endl;
-	// std::string cleaned_str = FilterStopwords(file_str);
+	std::string cleaned_str = FilterStopwords(file_str);
+	std::cout << "No stopwords -- " << cleaned_str << std::endl;
 	// std::cout << cleaned_str << std::endl;
 	// CreateRecords(cleaned_str, 1);
 }
