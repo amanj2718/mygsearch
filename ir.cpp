@@ -6,7 +6,7 @@ void CleanString(std::string& base_str, const std::string& filter){
 	std::size_t base_len = base_str.length();
 	std::size_t filter_len = filter.length() - 1;
 	std::size_t found = base_str.find(filter);
-	std::cout << "Before -- " << base_str << std::endl;
+	// std::cout << "Before -- " << base_str << std::endl;
 	while(found != std::string::npos){
 		base_str.erase(found, filter_len);
 		if(found + filter_len < base_len){
@@ -16,7 +16,7 @@ void CleanString(std::string& base_str, const std::string& filter){
 			break;
 		}
 	}
-	std::cout << "After -- " << base_str << std::endl;
+	// std::cout << "After -- " << base_str << std::endl;
 }
 
 int CountOccurrences(const std::string& base_str, const std::string& filter){
@@ -35,16 +35,35 @@ int CountOccurrences(const std::string& base_str, const std::string& filter){
 	return count;
 }
 
-void CreateRecords(std::string& data, int docid){
+void SplitString(const std::string& data, std::vector<std::string>& split){
+	// Takes a string, and splits it based on the space delimiter.
+	std::size_t found = data.find(" ");
+	split.push_back(data.substr(0, found));
+	// std::cout << data.substr(0, found) << std::endl;
+	std::size_t start = found + 1;
+	while(found != std::string::npos){
+		found = data.find(" ", start);
+		split.push_back(data.substr(start, found - start));
+		// std::cout << data.substr(start, found - start) << std::endl;
+		start = found + 1;
+	}
+}
+
+void CreateRecords(std::string& data, int docid, std::vector<Record*>& records){
 	// for each str, calculate the number of times it appears 
-	// and then remove all the occurrences.
 	// and create a record for the str.
+	std::vector<std::string> words;
+	SplitString(data, words);
+	for(std::vector<std::string>::iterator i = words.begin(); i != words.end(); i++){
+		records.push_back(new Record(*i, docid, CountOccurrences(data, *i)));
+	}
 }
 
 std::string FilterStopwords(std::string& fstr){
+	// this only works with -std=c++11, change to char**.
 	std::vector<std::string> stopwords = {" a ", " I ", " has ", " was ", " had ", " which ", " so ", " it ", " who ", "who ", " that "};
-	for(int i = 0; i < stopwords.size(); i++){
-		CleanString(fstr, stopwords[i]);
+	for(std::vector<std::string>::iterator i = stopwords.begin(); i != stopwords.end(); i++){
+		CleanString(fstr, *i);
 	}
 	return fstr;
 }
@@ -67,9 +86,9 @@ void CreateIndexes(){
 	}
 	std::string file_str (buffer, len);
 	std::string cleaned_str = FilterStopwords(file_str);
-	std::cout << "No stopwords -- " << cleaned_str << std::endl;
-	// std::cout << cleaned_str << std::endl;
-	// CreateRecords(cleaned_str, 1);
+	// std::cout << "No stopwords -- " << cleaned_str << std::endl;
+	std::vector<Record*> records;
+	CreateRecords(cleaned_str, 1, records);
 }
 
 int main(int argc, char const *argv[])
