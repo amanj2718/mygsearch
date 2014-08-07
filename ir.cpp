@@ -89,6 +89,13 @@ void CreateIndexes(){
 	// std::cout << "No stopwords -- " << cleaned_str << std::endl;
 	std::vector<Record*> records;
 	CreateRecords(cleaned_str, 1, records);
+	std::map<const std::string, int> iindex;
+	for(std::vector<Record*>::iterator i = records.begin(); i != records.end(); i++){
+		iindex[(*i)->term] = (*i)->docid;
+	}
+	for(std::map<const std::string, int>::iterator i = iindex.begin(); i != iindex.end(); i++){
+		std::cout << i->first << "\t" << i->second << std::endl;
+	}
 }
 
 int main(int argc, char const *argv[])
