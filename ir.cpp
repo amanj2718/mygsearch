@@ -4,10 +4,12 @@ Record::Record(std::string str = "foo", int did = 0, int mu = 0):term(str), doci
 
 void CleanString(std::string& base_str, const std::string& filter){
 	std::size_t base_len = base_str.length();
-	std::size_t filter_len = filter.length() - 1;
+	std::size_t filter_len = filter.length();
 	std::size_t found = base_str.find(filter);
 	// std::cout << "Before -- " << base_str << std::endl;
 	while(found != std::string::npos){
+		// so that words dont stick when you remove stuff.
+		base_str.insert(found + filter_len, " ");
 		base_str.erase(found, filter_len);
 		if(found + filter_len < base_len){
 			found = base_str.find(filter, found+filter_len);
@@ -55,13 +57,17 @@ void CreateRecords(std::string& data, int docid, std::vector<Record*>& records){
 	std::vector<std::string> words;
 	SplitString(data, words);
 	for(std::vector<std::string>::iterator i = words.begin(); i != words.end(); i++){
-		records.push_back(new Record(*i, docid, CountOccurrences(data, *i)));
+		// begin hack
+		if(*i != ""){
+			records.push_back(new Record(*i, docid, CountOccurrences(data, *i)));
+		}
+		// end hack, was counting empty string.
 	}
 }
 
 std::string FilterStopwords(std::string& fstr){
 	// this only works with -std=c++11, change to char**.
-	std::vector<std::string> stopwords = {" a ", " I ", " has ", " was ", " had ", " which ", " so ", " it ", " who ", "who ", " that "};
+	std::vector<std::string> stopwords = {" a ", " I ", " has ", " was ", " had ", " which ", " so ", " it ", " who ", "who ", " that ", ",", "\n", "."};
 	for(std::vector<std::string>::iterator i = stopwords.begin(); i != stopwords.end(); i++){
 		CleanString(fstr, *i);
 	}
@@ -86,7 +92,7 @@ void CreateIndexes(){
 	}
 	std::string file_str (buffer, len);
 	std::string cleaned_str = FilterStopwords(file_str);
-	// std::cout << "No stopwords -- " << cleaned_str << std::endl;
+	std::cout << "No stopwords -- " << cleaned_str << std::endl;
 	std::vector<Record*> records;
 	CreateRecords(cleaned_str, 1, records);
 	std::map<const std::string, int> iindex;
@@ -100,9 +106,6 @@ void CreateIndexes(){
 
 int main(int argc, char const *argv[])
 {
-	// std::string s = "Aman was a boy who had a little cat which was actually so little that it was a fox.";
-	// int num_a = CountOccurrences(s, " was ");
-	// std::cout << num_a << std::endl;
 	CreateIndexes();
 	return 0;
 }
